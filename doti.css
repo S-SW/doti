@@ -1,0 +1,470 @@
+/* ==================== 1. 默认夜间模式 (Dark) ==================== */
+:root {
+  --bg-color: #1a202c;
+  --text-color: #e2e8f0;
+  --card-bg: #2d3748;
+  --border-color: #4a5568;
+  --option-bg: #2d3748;
+  --option-hover: #4a5568;
+  --correct-bg: #1c452698;
+  --correct-text: #a3e635;
+  --wrong-bg: #631c1c69;
+  --wrong-text: #fca5a5;
+  --accent-color: #3182ce9f;
+  --accent-hover: #2b6cb0;
+  --btn-bg: #4a5568;
+  --btn-text: #e2e8f0;
+}
+
+/* ==================== 2. 白天模式 (Light) ==================== */
+[data-theme="light"] {
+  --bg-color: #fdfdfd;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --border-color: #cbd5e0;
+  --option-bg: #f8fafc;
+  --option-hover: #edf2f7;
+  --correct-bg: #d4edda;
+  --correct-text: #155724;
+  --wrong-bg: #f8d7da;
+  --wrong-text: #721c2591;
+  --accent-color: #3182ce;
+  --accent-hover: #2b6cb0;
+  --btn-bg: #ffffff;
+  --btn-text: #2d3748;
+}
+
+/* ==================== 3. 护眼绿模式 (Green) ==================== */
+/* 特点：柔和护眼、清新自然，适合长时间刷题使用 */
+[data-theme="green"] {
+  /* 整体背景 - 极淡的青绿色，降低视觉疲劳 */
+  --bg-color: #e6fffaa1;
+  
+  /* 主要文字颜色 - 深青绿色，清晰舒适 */
+  --text-color: #2c7a7b;
+  
+  /* 卡片/题目区域背景 - 纯白色，保持内容区域清晰 */
+  --card-bg: #ffffff;
+  
+  /* 边框颜色 - 柔和的青绿色边框 */
+  --border-color: #b2f5ea;
+  
+  /* 选项默认背景 */
+  --option-bg: #f0fff4;
+  
+  /* 选项鼠标悬停背景 - 稍亮的绿色 */
+  --option-hover: #c6f6d5;
+  
+  /* 正确答案背景 - 浅绿色 */
+  --correct-bg: #c6f6d5;
+  --correct-text: #22543d;
+  
+  /* 错误答案背景 - 柔和的浅红色 */
+  --wrong-bg: #fed7d7;
+  --wrong-text: #822727a1;
+  
+  /* 主色调（按钮、强调色） - 清新海绿色 */
+  --accent-color: #38b2ac;
+  --accent-hover: #319795;
+  
+  /* 普通按钮背景 - 淡青绿色 */
+  --btn-bg: #ccf0ea;
+  /* 按钮文字颜色 */
+  --btn-text: #2c7a7b;
+}
+
+/* ==================== 4. 基础布局样式 ==================== */
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  padding: 40px 340px 40px 40px; /* 右边留出足够侧边栏空间 */
+  margin: 0;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    padding-right 0.3s;
+}
+
+.main-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 auto 25px auto;
+  max-width: 750px;
+  text-align: center;
+}
+
+#quizContainer {
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+.question {
+  background-color: var(--card-bg);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 25px;
+}
+
+.question p {
+  font-size: 17px;
+  line-height: 1.6;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.options {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.options li {
+  cursor: pointer;
+  padding: 14px 18px;
+  background-color: var(--option-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.15s ease;
+}
+
+.options li:hover {
+  background-color: var(--option-hover);
+  transform: translateX(4px);
+}
+
+.options li.active-choice {
+  border-color: var(--accent-color) !important;
+  background-color: var(--option-hover) !important;
+  font-weight: bold;
+}
+
+.correct {
+  background-color: var(--correct-bg) !important;
+  color: var(--correct-text) !important;
+  border-color: #48bb78 !important;
+  font-weight: 600;
+}
+
+.wrong {
+  background-color: var(--wrong-bg) !important;
+  color: var(--wrong-text) !important;
+  border-color: #f56565 !important;
+  font-weight: 600;
+}
+
+/* 填空题专属样式 */
+.blank-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.blank-input {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  box-sizing: border-box;
+  outline: none;
+}
+.blank-input:focus {
+  border-color: var(--accent-color);
+}
+
+/* ==================== 5. 导航按钮 ==================== */
+.nav-panel {
+  display: flex;
+  gap: 15px;
+  margin: 20px auto 0 auto;
+  max-width: 750px;
+}
+
+.nav-btn {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  flex: 1;
+}
+.nav-btn:hover {
+  background-color: var(--accent-hover);
+}
+.nav-btn:disabled {
+  background-color: #cbd5e0;
+  color: #718096;
+  cursor: not-allowed;
+}
+
+/* ==================== 6. 侧边栏面板 ==================== */
+.sidebar-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 310px;
+  height: 100vh;
+  background-color: var(--card-bg);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-panel.collapsed {
+  transform: translateX(310px);
+}
+
+.toggle-sidebar-btn {
+  position: absolute;
+  left: -35px;
+  top: 20px;
+  width: 35px;
+  height: 90px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px 0 0 8px;
+  cursor: pointer;
+  font-size: 12px;
+  writing-mode: vertical-lr;
+  text-align: center;
+}
+
+.sidebar-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  gap: 20px;
+}
+
+.sidebar-section {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+}
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+.sidebar-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-upload-btn {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  text-align: center;
+  font-size: 13px;
+}
+#fileInput {
+  display: none;
+}
+
+.action-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.action-btn:hover {
+  border-color: var(--accent-color);
+  background-color: var(--option-hover);
+}
+.action-btn.active {
+  background-color: var(--accent-color) !important;
+  color: white !important;
+  border-color: var(--accent-color) !important;
+}
+.danger-btn {
+  background-color: #ee3e3e !important;
+  color: white !important;
+  border: none;
+}
+.danger-btn:hover {
+  background-color: #c53030 !important;
+}
+
+.info-item {
+  font-size: 13px;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+/* ==================== 答题卡看板紧凑精致版（一排8个） ==================== */
+
+/* 1. 网格容器：改成一排 8 个，格子会自动等比例缩小 */
+.box-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr); /* 👈 改为 8 列 */
+  gap: 8px; /* 紧凑布局下，间距缩小到 8px 更协调 */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 2. 分题型小标题样式 */
+.category-row-title {
+  grid-column: span 8; /* 👈 必须同步改为 span 8，完美横跨一排 */
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--accent-color);
+  margin: 16px 0 6px 0;
+  border-left: 4px solid var(--accent-color);
+  padding-left: 8px;
+}
+
+/* 3. 答题卡格子：尺寸精致、数字大小适中 */
+.grid-box {
+  aspect-ratio: 1;
+  background-color: var(--option-bg);
+  border: 1px solid var(--border-color);
+
+  /* 调整圆角：小格子配 6px 微圆角更精致 */
+  border-radius: 6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 核心缩小属性 */
+  font-size: 14px; /* 👈 字号从 20px 降到 14px，小巧清晰 */
+  font-weight: 700; /* 👈 保持粗体，确保小字也能一眼看清 */
+  line-height: 1;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--text-color);
+  user-select: none;
+}
+
+/* 悬浮互动 */
+.grid-box:hover {
+  filter: brightness(1.2);
+  transform: scale(1.08); /* 小格子放大效果可以稍微明显一点 */
+}
+
+/* 当前处于激活浏览状态的格子 */
+.grid-box.current-view {
+  border: 2px solid var(--text-color) !important; /* 稍微调细一点边框 */
+  box-shadow: 0 0 8px var(--accent-color);
+}
+
+/* 答题状态高亮 */
+.grid-box.status-correct {
+  background-color: #2f855a !important;
+  color: white !important;
+  border-color: #48bb78 !important;
+}
+
+.grid-box.status-wrong {
+  background-color: #9b2c2cd4 !important;
+  color: white !important;
+  border-color: #ee6f6fd7 !important;
+}
+
+/* 收藏夹特殊金边 */
+.grid-box.status-fav {
+  border: 1.8px solid #ecc94b !important;
+}
+
+
+/* ----------------------------------------气泡提示---------------------------------------------- */
+/* 1. 给按钮设置相对定位，作为气泡的基准锚点 */
+.tooltip-btn {
+  position: relative !important;
+}
+
+/* 2. 构建自定义提示气泡 */
+.tooltip-btn::after {
+  content: attr(data-title); /* 动态读取 HTML 中的 data-title 文字 */
+  position: absolute;
+  top: 115%;                 /* 定位在按钮的下方，完美避开左侧的分界线与展开按钮 */
+  left: 80%;
+  transform: translateX(-50%) translateY(-5px); /* 居中并往上提一点，做动画准备 */
+  
+  /* 气泡美化样式 */
+  background-color: rgba(23, 25, 35, 0.95); /* 深色精致半透明背景 */
+  color: #ffffff;                            /* 纯白文字 */
+  font-size: 11px;                           /* 略微缩小的精致字体 */
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  width: 150px;                              /* 限制宽度，使其自动换行块状化 */
+  white-space: normal;                       /* 允许文字自然换行 */
+  text-align: left;
+  font-weight: normal;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* 加深阴影，使其在暗色主题下也很清晰 */
+  border: 1px solid rgba(255, 255, 255, 0.1);/* 极细的微光边框 */
+  
+  /* 隐藏与动画过渡 */
+  opacity: 0;
+  pointer-events: none;                      /* 鼠标划过气泡本身时不会误触发 */
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 99999;                            /* 确保置于最顶层，不被其他面板遮挡 */
+}
+
+/* 3. 鼠标悬停时触发丝滑浮现 */
+.tooltip-btn:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0); /* 伴随向下微微沉淀的动画，极具质感 */
+}
+
+/* 4. 可选：为气泡顶部添加一个小箭头 */
+.tooltip-btn::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(23, 25, 35, 0.95) transparent;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 99999;
+}
+.tooltip-btn:hover::before {
+  opacity: 1;
+}

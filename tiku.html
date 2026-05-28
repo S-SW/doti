@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Doti.js 题库导入规则手册</title>
+    <style>
+      :root {
+        --bg-color: #ffffff;
+        --text-color: #333;
+        --h1-border: #3182ce;
+        --h2-color: #2b6cb0;
+        --code-bg: #f7fafc;
+        --nav-bg: #e2e8f0;
+        /* 复制按钮在白天的颜色 */
+        --btn-bg: #e2e8f0;
+        --btn-color: #4a5568;
+        --btn-hover: #cbd5e1;
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #1a202c;
+        --text-color: #e2e8f0;
+        --h1-border: #4299e1;
+        --h2-color: #63b3ed;
+        --code-bg: #2d3748;
+        --nav-bg: #2d3748;
+        /* 复制按钮在暗黑模式的颜色 */
+        --btn-bg: #4a5568;
+        --btn-color: #e2e8f0;
+        --btn-hover: #718096;
+      }
+
+      body {
+        font-family: sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
+
+      h1 {
+        border-bottom: 2px solid var(--h1-border);
+        padding-bottom: 10px;
+      }
+
+      h2 {
+        color: var(--h2-color);
+        margin-top: 30px;
+      }
+
+      code {
+        background: var(--code-bg);
+        padding: 2px 4px;
+        border-radius: 4px;
+        color: #d53f8c;
+      }
+
+      /* 让 pre 变成相对定位，以便给复制按钮当“锚点” */
+      pre {
+        background: #0b1a21be;
+        color: #ffffff;
+        padding: 40px 15px 15px 15px; /* 顶部加多一点内边距留给按钮 */
+        border-radius: 8px;
+        overflow-x: auto;
+        position: relative;
+      }
+
+      .nav {
+        background: var(--nav-bg);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .nav a {
+        margin-right: 15px;
+        text-decoration: none;
+        color: #3182ce;
+        font-weight: bold;
+      }
+
+      /* 夜间模式切换按钮 */
+      .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--nav-bg);
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(212, 241, 125, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        z-index: 1000;
+      }
+
+      .theme-toggle:hover {
+        transform: scale(1.1);
+      }
+
+      /* 统一的复制按钮样式 */
+      .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: var(--btn-bg);
+        color: var(--btn-color);
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      .copy-btn:hover {
+        background-color: var(--btn-hover);
+      }
+
+      .copy-btn.success {
+        background-color: #48bb78 !important;
+        color: white !important;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" id="themeToggle" title="切换夜间模式">
+      🌙
+    </button>
+
+    <h1>Doti.js 题库导入规则手册</h1>
+
+    <div class="nav">
+      <a href="#core">1. 核心规范</a>
+      <a href="#examples">2. 题型示例</a>
+      <a href="#tips">3. 注意事项</a>
+    </div>
+
+    <h2 id="core">1. 核心格式规范</h2>
+    <p>每一行代表一道题目。使用竖线 <code>|</code> 作为分隔符。</p>
+    <p>
+      结构：<code>题目内容 | 选项A | 选项B | 选项C | 选项D | 标准答案</code>
+    </p>
+
+    <h2 id="examples">2. 不同题型配置示例</h2>
+
+    <h3>单选题</h3>
+    <pre>中国的首听是哪里？| 北京 | 上海 | 广州 | 深圳 | A</pre>
+
+    <h3>判断题</h3>
+    <pre>地球是圆的吗？| 正确 | 错误 | 正确</pre>
+
+    <h3>多选题</h3>
+    <pre>以下哪些是编程语言？| Java | Python | 英语 | 汉语 | ABD</pre>
+
+    <h3>填空题</h3>
+    <pre>世界上最高的山峰是？| 珠穆朗玛峰</pre>
+
+    <h3>给AI的提示词</h3>
+    <pre>
+# Role
+你是一个严格、高效的“Doti.js 题库数据转换与生成专家”。你的任务是根据用户的要求，将文本内容转化为符合 Doti.js 导入规范的题库格式。
+
+# Goal
+根据用户提供的主题、知识点或原材料，生成完全符合 Doti.js 导入规则的题目。
+
+# Core Rules (必须绝对遵守)
+1. 格式输出：每一行代表一道题目。必须使用竖线 `|` 作为唯一的分隔符。
+2. 严禁包含：题目内容、选项及答案中绝对不能包含 `|` 符号，如有冲突请用空格代替。
+3. 干净输出：只输出符合规则的题目数据，不要包含任何前言、后记、Markdown 标记（如 ``` 或列表符号）、序号或解释。
+4. 编码意识：确保生成的内容没有特殊乱码字符。
+
+# Format Profiles (各题型标准格式)
+请严格按照以下格式针对不同题型进行配置：
+
+- 单选题格式：
+  题目内容 | 选项A | 选项B | 选项C | 选项D | 标准答案字母(A/B/C/D)
+  *示例：中国的首都是哪里？| 北京 | 上海 | 广州 | 深圳 | A
+
+- 判断题格式：
+  题目内容 | 选项1(通常为正确) | 选项2(通常为错误) | 文本标准答案(正确/错误)
+  *示例：地球是圆的吗？| 正确 | 错误 | 正确
+
+- 多选题格式：
+  题目内容 | 选项A | 选项B | 选项C | 选项D | 标准答案字母组合(如 ABD)
+  *示例：以下哪些是编程语言？| Java | Python | 英语 | 汉语 | ABD
+
+- 填空题格式：
+  题目内容 | 标准答案
+  *示例：世界上最高的山峰是？| 珠穆朗玛峰
+
+# Workflow
+1. 分析用户输入的主题/资料。
+2. 构思题目，确保题目表述准确、无歧义，选项干扰项设计合理。
+3. 严格按照上述格式进行单行格式化排版。
+4. 检查输出，确保没有任何非法文字说明和空行。
+5. 不能自己修改题目或选项内容，必须完全按照用户提供的资料生成题目，不能漏题或多题，校验题目完整性。
+</pre
+    >
+
+    <h2 id="tips">3. 重要注意事项</h2>
+    <ul>
+      <li>
+        <strong>编码格式：</strong> 务必使用
+        <code>UTF-8</code> 保存文件，防止乱码。
+      </li>
+      <li>
+        <strong>内容避让：</strong> 题目内容中请勿包含 <code>|</code> 符号。
+      </li>
+      <li>
+        <strong>空行与说明：</strong>
+        程序会自动忽略空行，但请勿在题目行中加入非法的文字说明。
+      </li>
+    </ul>
+
+    <script>
+      const toggleButton = document.getElementById("themeToggle");
+      const body = document.body;
+
+      // 检查本地存储的主题偏好
+      function initTheme() {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+          body.setAttribute("data-theme", "dark");
+          toggleButton.textContent = "☀️";
+        }
+      }
+
+      // 切换主题
+      function toggleTheme() {
+        if (body.getAttribute("data-theme") === "dark") {
+          body.removeAttribute("data-theme");
+          toggleButton.textContent = "🌙";
+          localStorage.setItem("theme", "light");
+        } else {
+          body.setAttribute("data-theme", "dark");
+          toggleButton.textContent = "☀️";
+          localStorage.setItem("theme", "dark");
+        }
+      }
+
+      // 自动化批量注入复制按钮
+      function initCopyButtons() {
+        const preBlocks = document.querySelectorAll("pre");
+
+        preBlocks.forEach((pre) => {
+          // 创建按钮
+          const button = document.createElement("button");
+          button.className = "copy-btn";
+          button.innerText = "复制";
+
+          // 点击事件
+          button.addEventListener("click", () => {
+            // 排除按钮自身的文本，只获取纯粹的题目或提示词内容
+            const codeText = pre.innerText.replace(/复制|已复制！/g, "").trim();
+
+            navigator.clipboard
+              .writeText(codeText)
+              .then(() => {
+                button.innerText = "已复制！";
+                button.classList.add("success");
+
+                setTimeout(() => {
+                  button.innerText = "复制";
+                  button.classList.remove("success");
+                }, 1500);
+              })
+              .catch((err) => {
+                console.error("复制失败:", err);
+              });
+          });
+
+          // 把按钮放到 pre 容器内
+          pre.appendChild(button);
+        });
+      }
+
+      // 绑定事件
+      toggleButton.addEventListener("click", toggleTheme);
+
+      // 初始化所有配置
+      initTheme();
+      initCopyButtons();
+    </script>
+  </body>
+</html>

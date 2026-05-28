@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>NAHK的刷题工具</title>
+    <link rel="stylesheet" href="doti.css" />
+    <style></style>
+  </head>
+  <body>
+    <div class="main-title">NAHK的刷题工具</div>
+
+    <div id="quizContainer"></div>
+
+    <div class="nav-panel" id="navPanel" style="display: none">
+      <button id="prevBtn" class="nav-btn">上一题</button>
+      <button id="nextBtn" class="nav-btn">下一题</button>
+    </div>
+
+    <div class="sidebar-panel" id="sidebarPanel">
+      <button class="toggle-sidebar-btn" id="toggleSidebarBtn">
+        ▶ 展开面板
+      </button>
+
+      <div class="sidebar-content">
+        <div class="sidebar-section">
+          <h3>文件与设置</h3>
+          <div class="control-grid">
+            <label for="fileInput" class="file-upload-btn"
+              >选择题库 TXT 文件</label
+            >
+            <input type="file" id="fileInput" accept=".txt" />
+            <div
+              id="fileNameDisplay"
+              class="info-item"
+              style="text-align: center; word-break: break-all"
+            >
+              未选择任何文件
+            </div>
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin: 12px 0 10px 0;
+              "
+            >
+              <button
+                id="exportBackupBtn"
+                class="action-btn tooltip-btn"
+                style="background: #38a169; color: white"
+                data-title="一键备份：将所有数据（题库、收藏、错题、作答记录、书签等）打包成一个 .json 文件下载"
+              >
+                💾 完整备份
+              </button>
+
+              <label
+                for="importBackupInput"
+                class="action-btn tooltip-btn"
+                style="
+                  background: #3182ce;
+                  color: white;
+                  text-align: center;
+                  cursor: pointer;
+                "
+                data-title="从之前导出的 .json 备份文件恢复所有数据"
+              >
+                📂 恢复备份
+              </label>
+              <input
+                type="file"
+                id="importBackupInput"
+                accept=".json"
+                style="display: none"
+              />
+            </div>
+
+            <!-- 主题切换 -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 6px;
+                margin-bottom: 10px;
+              "
+            >
+              <button id="themeNight" class="action-btn">🌙 夜</button>
+              <button id="themeLight" class="action-btn">☀️ 白</button>
+              <button id="themeGreen" class="action-btn">🌿 绿</button>
+            </div>
+
+            <button id="toggleModeBtn" class="action-btn">切换整卷模式</button>
+            <button
+              id="setBookmarkBtn"
+              class="action-btn"
+              style="border-color: #ecc94b; color: #ecc94b"
+            >
+              标记当前题位置
+            </button>
+            <span style="font-size: 12px; color: #718096;">单题模式下标记有效</span>
+            <button id="toggleAutoNextBtn" class="action-btn">
+              自动跳转：关闭
+            </button>
+          </div>
+
+          <div class="info-item" style="margin-top: 12px">
+            书签：<span
+              id="bookmarkTip"
+              style="color: #ecc94b; font-weight: bold"
+              >未标记</span
+            >
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>题库归类管理</h3>
+          <div class="control-grid" style="gap: 6px">
+            <button
+              id="toggleWrongModeBtn"
+              class="action-btn"
+              style="border-color: #f56565; color: #e53e3e"
+            >
+              进入错题本 (<span id="wrongCount">0</span>)
+            </button>
+            <div
+              id="wrongActionGroup"
+              style="display: flex; gap: 4px; display: none"
+            >
+              <button
+                id="exportWrongBtn"
+                class="action-btn"
+                style="
+                  background-color: #38a169;
+                  color: white;
+                  padding: 4px;
+                  font-size: 11px;
+                  width: 100%;
+                "
+              >
+                导出错题
+              </button>
+              <button
+                id="clearWrongBtn"
+                class="action-btn danger-btn"
+                style="padding: 4px; font-size: 11px; width: 100%"
+              >
+                清空错题
+              </button>
+            </div>
+
+            <button
+              id="toggleFavModeBtn"
+              class="action-btn"
+              style="border-color: #ecc94b; color: #ecc94b; margin-top: 6px"
+            >
+              进入收藏夹 (<span id="favCount">0</span>)
+            </button>
+            <div
+              id="favActionGroup"
+              style="display: flex; gap: 4px; display: none"
+            >
+              <button
+                id="exportFavBtn"
+                class="action-btn"
+                style="
+                  background-color: #38a169;
+                  color: white;
+                  padding: 4px;
+                  font-size: 11px;
+                  width: 100%;
+                "
+              >
+                导出收藏
+              </button>
+              <button
+                id="clearFavBtn"
+                class="action-btn danger-btn"
+                style="padding: 4px; font-size: 11px; width: 100%"
+              >
+                清空收藏
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>状态进度</h3>
+          <div
+            class="info-item"
+            id="progressText"
+            style="color: #e2e8f0; font-weight: 500"
+          >
+            等待导入题库...
+          </div>
+          <div
+            class="info-item"
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-top: 8px;
+            "
+          >
+            <span>🟩 对: <span id="statCorrect">0</span></span>
+            <span>🟥 错: <span id="statWrong">0</span></span>
+            <span>⬛ 未: <span id="statUnsolved">0</span></span>
+          </div>
+
+          <button
+            id="clearTracksBtn"
+            class="action-btn danger-btn"
+            style="
+              margin-top: 10px;
+              width: 100%;
+              padding: 6px;
+              font-size: 12px;
+              border-radius: 4px;
+            "
+          >
+            🗑️ 清空当前作答记录
+          </button>
+
+          <div
+            class="info-item"
+            style="font-size: 11px; color: #718096; margin-top: 8px"
+          >
+            💡 提示：键盘方向键切题，1，2，3，4键秒选单选。
+          </div>
+        </div>
+
+        <div class="sidebar-section" style="flex: 1">
+          <h3>答题卡看板</h3>
+          <div id="boxGrid"></div>
+        </div>
+        <h5
+          onclick="window.open('tiku.html', '_blank')"
+          style="
+            color: #4cbd50;
+            text-decoration: underline;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+          "
+        >
+          文件导入规则
+        </h5>
+      </div>
+    </div>
+    <script src="doti.js"></script>
+  </body>
+</html>
