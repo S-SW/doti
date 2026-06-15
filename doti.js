@@ -1,5 +1,5 @@
 /**
- * Doti.js - 核心逻辑修复（彻底分离侧边栏控制面板与看板格子，防止挤压、隐形）
+ * Doti.js - 核心逻辑修复与快捷键升级版（超瞬时跳转优化版）
  */
 
 let originalQuestions = [];
@@ -18,7 +18,7 @@ let wrongHistoryTracks = {};
 let favHistoryTracks = {};
 const LETTER_ARR = ["A", "B", "C", "D"];
 
-// --- 新增：页面加载时自动读取上次的题库 ---
+// --- 页面加载时自动读取上次的题库 ---
 window.addEventListener("DOMContentLoaded", () => {
   const savedFilename = localStorage.getItem("quiz_last_filename");
   const savedData = localStorage.getItem("quiz_last_content");
@@ -29,7 +29,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 将原本 fileInput 的处理逻辑提取为一个函数，方便复用
 function processQuizData(text, fileName) {
   if (!text || text.trim() === "") return;
   fileSignature = btoa(encodeURIComponent(fileName + "_" + text.length));
@@ -60,8 +59,6 @@ function processQuizData(text, fileName) {
     let isMultiple = false;
     let isBlankType = false;
 
-    // ... (此处保留你原有的判断逻辑：单选/多选/判断/填空) ...
-    // 为了节省篇幅，请直接复制原代码中的 optionsParts 判断逻辑段落
     if (optionsParts.length === 0) {
       isBlankType = true;
       typeBadge =
@@ -99,7 +96,6 @@ function processQuizData(text, fileName) {
         '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
     }
 
-    // ... (保留你原有的打乱选项逻辑) ...
     let mappedOptions = [];
     if (!isBlankType) {
       mappedOptions = optionsParts
@@ -401,7 +397,7 @@ function toggleFavorite(qId, btnObj) {
   if (isFavMode) refreshDisplay();
 }
 
-// 题库解析
+// 题库解析导入
 document.getElementById("fileInput").addEventListener("change", function (e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -413,10 +409,8 @@ document.getElementById("fileInput").addEventListener("change", function (e) {
   reader.onload = function (e) {
     const fileContent = e.target.result;
 
-    // ============== ✨ 新增：将文件名和内容存入本地缓存 ==============
     localStorage.setItem("quiz_last_filename", file.name);
     localStorage.setItem("quiz_last_content", fileContent);
-    // =============================================================
 
     const lines = fileContent.split(/\r?\n/);
     originalQuestions = [];
@@ -619,67 +613,7 @@ function buildQuestionHtml(qObj, displayIdx) {
   `;
 }
 
-function checkBlankAnswer(qId) {
-  const panel = document.getElementById(`blank-panel-${qId}`);
-  const inputEl = document.getElementById(`input-${qId}`);
-  if (!panel || !inputEl) return;
-
-  let list = isWrongMode
-    ? wrongQuestions
-    : isFavMode
-      ? favQuestions
-      : currentQuestions;
-  let qObj = list.find((item) => item.id === qId);
-  if (!qObj) return;
-
-  let userText = inputEl.value.trim();
-  let rightText = qObj.ans.trim();
-  let isCorrect = userText === rightText;
-
-  let trackData = {
-    status: isCorrect ? "correct" : "wrong",
-    userChoice: [userText || "EMPTY"],
-  };
-
-  if (isWrongMode) {
-    wrongHistoryTracks[qId] = trackData;
-    localStorage.setItem(
-      "quiz_wrong_tracks",
-      JSON.stringify(wrongHistoryTracks),
-    );
-  } else if (isFavMode) {
-    favHistoryTracks[qId] = trackData;
-    localStorage.setItem("quiz_fav_tracks", JSON.stringify(favHistoryTracks));
-  } else {
-    userHistoryTracks[qId] = trackData;
-    localStorage.setItem("quiz_user_tracks", JSON.stringify(userHistoryTracks));
-  }
-
-  inputEl.disabled = true;
-  panel.querySelector(".verify-blank-btn").style.display = "none";
-
-  let resultBox = panel.querySelector(".blank-result-text");
-  resultBox.style.display = "block";
-
-  if (isCorrect) {
-    resultBox.style.backgroundColor = "var(--correct-bg)";
-    resultBox.style.color = "var(--correct-text)";
-    resultBox.innerText = `恭喜答对！参考答案：${qObj.ans}`;
-    if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
-      setTimeout(() => {
-        currentIndex++;
-        refreshDisplay();
-      }, 800);
-    }
-  } else {
-    resultBox.style.backgroundColor = "var(--wrong-bg)";
-    resultBox.style.color = "var(--wrong-text)";
-    resultBox.innerText = `回答错误。你的答案: "${userText || "未填写"}" | 正确参考答案: "${qObj.ans}"`;
-    addToWrongList(qId);
-  }
-  buildAnswerCardMatrix(list);
-}
-
+// 恢复作答痕迹修复
 function restoreAnswering痕迹(list) {
   let targetTracks = isWrongMode
     ? wrongHistoryTracks
@@ -689,14 +623,13 @@ function restoreAnswering痕迹(list) {
 
   list.forEach((qObj) => {
     let track = targetTracks[qObj.id];
-    if (!track) return;
+    if (!track) return; 
 
     if (qObj.isBlankType) {
       let panel = document.getElementById(`blank-panel-${qObj.id}`);
       let inputEl = document.getElementById(`input-${qObj.id}`);
       if (panel && inputEl) {
-        inputEl.value =
-          track.userChoice[0] === "EMPTY" ? "" : track.userChoice[0];
+        inputEl.value = track.userChoice[0] === "EMPTY" ? "" : track.userChoice[0];
         inputEl.disabled = true;
         let vBtn = panel.querySelector(".verify-blank-btn");
         if (vBtn) vBtn.style.display = "none";
@@ -712,11 +645,12 @@ function restoreAnswering痕迹(list) {
           resBox.innerText = `回答错误。你的答案: "${inputEl.value || "未填写"}" | 正确参考答案: "${qObj.ans}"`;
         }
       }
-      return;
+      return; 
     }
 
     let qBox = document.getElementById(`box-${qObj.id}`);
     if (!qBox) return;
+    
     let ul = qBox.querySelector(".options");
     if (!ul) return;
     ul.classList.add("answered");
@@ -866,6 +800,210 @@ function addToWrongList(qId) {
   }
 }
 
+// 监听键盘快捷键 A/D 切换
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+    return;
+  }
+
+  let list = isWrongMode
+    ? wrongQuestions
+    : isFavMode
+      ? favQuestions
+      : currentQuestions;
+  if (list.length === 0) return;
+
+  const keyLower = e.key.toLowerCase();
+
+  if (keyLower === "a" && currentIndex > 0) {
+    currentIndex--;
+    refreshDisplay();
+    return;
+  } else if (keyLower === "d" && currentIndex < list.length - 1) {
+    currentIndex++;
+    refreshDisplay();
+    return;
+  }
+});
+
+// 导出备份功能
+document.getElementById("exportBackupBtn").addEventListener("click", () => {
+  if (!fileSignature && originalQuestions.length === 0) {
+    return alert("当前没有数据可备份！");
+  }
+
+  const backupData = {
+    version: "1.0",
+    timestamp: new Date().toISOString(),
+    lastFilename: document.getElementById("fileNameDisplay").innerText,
+    originalQuestions: originalQuestions,
+    wrongQuestions: wrongQuestions,
+    favQuestions: favQuestions,
+    userHistoryTracks: userHistoryTracks,
+    wrongHistoryTracks: wrongHistoryTracks,
+    favHistoryTracks: favHistoryTracks,
+    bookmarks: {},
+  };
+
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("bookmark_")) {
+      backupData.bookmarks[key] = localStorage.getItem(key);
+    }
+  });
+
+  const blob = new Blob([JSON.stringify(backupData, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Doti刷题备份_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  alert("✅ 完整备份已下载！请妥善保存该文件。");
+});
+
+// 恢复备份功能
+document
+  .getElementById("importBackupInput")
+  .addEventListener("change", function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      try {
+        const backup = JSON.parse(event.target.result);
+
+        if (!backup.version) {
+          return alert("❌ 这不是有效的 Doti 备份文件！");
+        }
+
+        if (backup.originalQuestions)
+          originalQuestions = backup.originalQuestions;
+        if (backup.wrongQuestions) wrongQuestions = backup.wrongQuestions;
+        if (backup.favQuestions) favQuestions = backup.favQuestions;
+        if (backup.userHistoryTracks)
+          userHistoryTracks = backup.userHistoryTracks;
+        if (backup.wrongHistoryTracks)
+          wrongHistoryTracks = backup.wrongHistoryTracks;
+        if (backup.favHistoryTracks) favHistoryTracks = backup.favHistoryTracks;
+
+        if (backup.bookmarks) {
+          Object.keys(backup.bookmarks).forEach((key) => {
+            localStorage.setItem(key, backup.bookmarks[key]);
+          });
+        }
+
+        localStorage.setItem(
+          "quiz_wrong_questions",
+          JSON.stringify(wrongQuestions),
+        );
+        localStorage.setItem(
+          "quiz_fav_questions",
+          JSON.stringify(favQuestions),
+        );
+        localStorage.setItem(
+          "quiz_user_tracks",
+          JSON.stringify(userHistoryTracks),
+        );
+        localStorage.setItem(
+          "quiz_wrong_tracks",
+          JSON.stringify(wrongHistoryTracks),
+        );
+        localStorage.setItem(
+          "quiz_fav_tracks",
+          JSON.stringify(favHistoryTracks),
+        );
+
+        document.getElementById("wrongCount").innerText = wrongQuestions.length;
+        document.getElementById("favCount").innerText = favQuestions.length;
+
+        alert(
+          `✅ 备份恢复成功！\n\n题库：${originalQuestions.length} 题\n收藏：${favQuestions.length} 题\n错题：${wrongQuestions.length} 题`,
+        );
+
+        isWrongMode = false;
+        isFavMode = false;
+        currentIndex = 0;
+        refreshDisplay();
+      } catch (err) {
+        alert("❌ 恢复失败：文件格式错误或已损坏");
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+// ==================== 核心交互函数释放至全局作用域（跳转间隔缩短为100ms） ====================
+
+// 1. 填空题核对与跳转
+function checkBlankAnswer(qId) {
+  const panel = document.getElementById(`blank-panel-${qId}`);
+  const inputEl = document.getElementById(`input-${qId}`);
+  if (!panel || !inputEl) return;
+
+  let list = isWrongMode
+    ? wrongQuestions
+    : isFavMode
+      ? favQuestions
+      : currentQuestions;
+  let qObj = list.find((item) => item.id === qId);
+  if (!qObj) return;
+
+  let userText = inputEl.value.trim();
+  let rightText = qObj.ans.trim();
+  let isCorrect = userText === rightText;
+
+  let trackData = {
+    status: isCorrect ? "correct" : "wrong",
+    userChoice: [userText || "EMPTY"],
+  };
+
+  if (isWrongMode) {
+    wrongHistoryTracks[qId] = trackData;
+    localStorage.setItem(
+      "quiz_wrong_tracks",
+      JSON.stringify(wrongHistoryTracks),
+    );
+  } else if (isFavMode) {
+    favHistoryTracks[qId] = trackData;
+    localStorage.setItem("quiz_fav_tracks", JSON.stringify(favHistoryTracks));
+  } else {
+    userHistoryTracks[qId] = trackData;
+    localStorage.setItem("quiz_user_tracks", JSON.stringify(userHistoryTracks));
+  }
+
+  inputEl.disabled = true;
+  panel.querySelector(".verify-blank-btn").style.display = "none";
+
+  let resultBox = panel.querySelector(".blank-result-text");
+  resultBox.style.display = "block";
+
+  if (isCorrect) {
+    resultBox.style.backgroundColor = "var(--correct-bg)";
+    resultBox.style.color = "var(--correct-text)";
+    resultBox.innerText = `恭喜答对！参考答案：${qObj.ans}`;
+    // 开启自动跳转且未到达最后一题时，100ms 快速跳转
+    if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
+      setTimeout(() => {
+        currentIndex++;
+        refreshDisplay();
+      }, 100);
+    }
+  } else {
+    resultBox.style.backgroundColor = "var(--wrong-bg)";
+    resultBox.style.color = "var(--wrong-text)";
+    resultBox.innerText = `回答错误。你的答案: "${userText || "未填写"}" | 正确参考答案: "${qObj.ans}"`;
+    addToWrongList(qId);
+  }
+  buildAnswerCardMatrix(list);
+}
+
+// 2. 单选/判断题核对与跳转
 function check(el, choice) {
   const parent = el.parentNode;
   if (parent.classList.contains("answered")) return;
@@ -884,7 +1022,6 @@ function check(el, choice) {
   } else {
     parent.classList.add("answered");
 
-    // 【核心修复】清除可能存在的 "A. ", "B. " 等前缀，拿到纯文本进行比对
     let pureEditText = el.innerText.replace(/^[A-D]\.\s*/, "").trim();
     let isCorrect =
       choice === ans || el.innerText.trim() === ans || pureEditText === ans;
@@ -913,11 +1050,12 @@ function check(el, choice) {
 
     if (isCorrect) {
       el.classList.add("correct");
+      // 开启自动跳转且未到达最后一题时，100ms 快速跳转
       if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
         setTimeout(() => {
           currentIndex++;
           refreshDisplay();
-        }, 500);
+        }, 100);
       }
     } else {
       el.classList.add("wrong");
@@ -925,7 +1063,6 @@ function check(el, choice) {
       Array.from(parent.children).forEach((li) => {
         let c = li.getAttribute("data-char");
         let liPureText = li.innerText.replace(/^[A-D]\.\s*/, "").trim();
-        // 【核心修复】错题红绿灯切换时，同样支持纯文本和字符双重匹配
         if (c === ans || li.innerText.trim() === ans || liPureText === ans)
           li.classList.add("correct");
       });
@@ -934,6 +1071,7 @@ function check(el, choice) {
   }
 }
 
+// 3. 多选题核对与跳转
 function submitMultiple(btnObj) {
   const parent = btnObj.parentNode.querySelector(".options");
   if (parent.classList.contains("answered")) return;
@@ -986,18 +1124,21 @@ function submitMultiple(btnObj) {
     else if (qObj.ans.includes(itemChar)) li.classList.add("correct");
   });
 
-  if (!isCorrect) addToWrongList(qId);
-  else {
+  if (!isCorrect) {
+    addToWrongList(qId);
+  } else {
+    // 开启自动跳转且未到达最后一题时，100ms 快速跳转
     if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
       setTimeout(() => {
         currentIndex++;
         refreshDisplay();
-      }, 500);
+      }, 100);
     }
   }
   buildAnswerCardMatrix(list);
 }
 
+// 4. 原有上下题按钮监听事件
 document.getElementById("prevBtn").addEventListener("click", () => {
   if (currentIndex > 0) {
     currentIndex--;
@@ -1015,163 +1156,3 @@ document.getElementById("nextBtn").addEventListener("click", () => {
     refreshDisplay();
   }
 });
-
-document.addEventListener("keydown", (e) => {
-  let list = isWrongMode
-    ? wrongQuestions
-    : isFavMode
-      ? favQuestions
-      : currentQuestions;
-  if (list.length === 0) return;
-
-  if (isSingleMode) {
-    if (e.key === "ArrowLeft" && currentIndex > 0) {
-      currentIndex--;
-      refreshDisplay();
-      return;
-    } else if (e.key === "ArrowRight" && currentIndex < list.length - 1) {
-      currentIndex++;
-      refreshDisplay();
-      return;
-    }
-  }
-
-  if (isSingleMode) {
-    const currentOptionsContainer = document.querySelector(".options");
-    if (
-      currentOptionsContainer &&
-      !currentOptionsContainer.classList.contains("answered")
-    ) {
-      // 仅在单选题（或判断题）非多选状态下生效
-      if (currentOptionsContainer.getAttribute("data-multiple") !== "true") {
-        // 定义数字 1-4 与索引 0-3 的映射关系
-        const numKeys = ["1", "2", "3", "4"];
-        let targetIndex = numKeys.indexOf(e.key);
-
-        if (targetIndex !== -1) {
-          let targetLi = currentOptionsContainer.children[targetIndex];
-          if (targetLi) targetLi.click();
-        }
-      }
-    }
-  }
-});
-
-// ==================== 新增：完整备份与恢复功能 ====================
-
-// 导出完整备份
-document.getElementById("exportBackupBtn").addEventListener("click", () => {
-  if (!fileSignature && originalQuestions.length === 0) {
-    return alert("当前没有数据可备份！");
-  }
-
-  const backupData = {
-    version: "1.0",
-    timestamp: new Date().toISOString(),
-    lastFilename: document.getElementById("fileNameDisplay").innerText,
-    originalQuestions: originalQuestions,
-    wrongQuestions: wrongQuestions,
-    favQuestions: favQuestions,
-    userHistoryTracks: userHistoryTracks,
-    wrongHistoryTracks: wrongHistoryTracks,
-    favHistoryTracks: favHistoryTracks,
-    bookmarks: {},
-  };
-
-  // 收集所有书签
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("bookmark_")) {
-      backupData.bookmarks[key] = localStorage.getItem(key);
-    }
-  });
-
-  const blob = new Blob([JSON.stringify(backupData, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `Doti刷题备份_${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  alert("✅ 完整备份已下载！请妥善保存该文件。");
-});
-
-// 从备份恢复
-document
-  .getElementById("importBackupInput")
-  .addEventListener("change", function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      try {
-        const backup = JSON.parse(event.target.result);
-
-        if (!backup.version) {
-          return alert("❌ 这不是有效的 Doti 备份文件！");
-        }
-
-        // 恢复数据
-        if (backup.originalQuestions)
-          originalQuestions = backup.originalQuestions;
-        if (backup.wrongQuestions) wrongQuestions = backup.wrongQuestions;
-        if (backup.favQuestions) favQuestions = backup.favQuestions;
-        if (backup.userHistoryTracks)
-          userHistoryTracks = backup.userHistoryTracks;
-        if (backup.wrongHistoryTracks)
-          wrongHistoryTracks = backup.wrongHistoryTracks;
-        if (backup.favHistoryTracks) favHistoryTracks = backup.favHistoryTracks;
-
-        // 恢复书签
-        if (backup.bookmarks) {
-          Object.keys(backup.bookmarks).forEach((key) => {
-            localStorage.setItem(key, backup.bookmarks[key]);
-          });
-        }
-
-        // 保存到 localStorage
-        localStorage.setItem(
-          "quiz_wrong_questions",
-          JSON.stringify(wrongQuestions),
-        );
-        localStorage.setItem(
-          "quiz_fav_questions",
-          JSON.stringify(favQuestions),
-        );
-        localStorage.setItem(
-          "quiz_user_tracks",
-          JSON.stringify(userHistoryTracks),
-        );
-        localStorage.setItem(
-          "quiz_wrong_tracks",
-          JSON.stringify(wrongHistoryTracks),
-        );
-        localStorage.setItem(
-          "quiz_fav_tracks",
-          JSON.stringify(favHistoryTracks),
-        );
-
-        document.getElementById("wrongCount").innerText = wrongQuestions.length;
-        document.getElementById("favCount").innerText = favQuestions.length;
-
-        alert(
-          `✅ 备份恢复成功！\n\n题库：${originalQuestions.length} 题\n收藏：${favQuestions.length} 题\n错题：${wrongQuestions.length} 题`,
-        );
-
-        // 刷新界面
-        isWrongMode = false;
-        isFavMode = false;
-        currentIndex = 0;
-        refreshDisplay();
-      } catch (err) {
-        alert("❌ 恢复失败：文件格式错误或已损坏");
-        console.error(err);
-      }
-    };
-    reader.readAsText(file);
-  });
