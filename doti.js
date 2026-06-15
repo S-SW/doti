@@ -883,7 +883,12 @@ function check(el, choice) {
     el.classList.toggle("active-choice");
   } else {
     parent.classList.add("answered");
-    let isCorrect = choice === ans || el.innerText.trim() === ans;
+
+    // 【核心修复】清除可能存在的 "A. ", "B. " 等前缀，拿到纯文本进行比对
+    let pureEditText = el.innerText.replace(/^[A-D]\.\s*/, "").trim();
+    let isCorrect =
+      choice === ans || el.innerText.trim() === ans || pureEditText === ans;
+
     let trackData = {
       status: isCorrect ? "correct" : "wrong",
       userChoice: [choice],
@@ -919,7 +924,9 @@ function check(el, choice) {
       addToWrongList(qId);
       Array.from(parent.children).forEach((li) => {
         let c = li.getAttribute("data-char");
-        if (c === ans || li.innerText.trim() === ans)
+        let liPureText = li.innerText.replace(/^[A-D]\.\s*/, "").trim();
+        // 【核心修复】错题红绿灯切换时，同样支持纯文本和字符双重匹配
+        if (c === ans || li.innerText.trim() === ans || liPureText === ans)
           li.classList.add("correct");
       });
     }
