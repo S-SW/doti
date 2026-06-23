@@ -541,12 +541,17 @@ function refreshDisplay() {
     : isFavMode
       ? favQuestions
       : currentQuestions;
+
   const nav = document.getElementById("navPanel");
+  const sidePrev = document.getElementById("sidePrevBtn");
+  const sideNext = document.getElementById("sideNextBtn");
 
   if (list.length === 0) {
     document.getElementById("quizContainer").innerHTML =
       `<div style="text-align:center;color:#718096;padding:40px;">暂无数据。</div>`;
     nav.style.display = "none";
+    if (sidePrev) sidePrev.style.display = "none";
+    if (sideNext) sideNext.style.display = "none";
     document.getElementById("boxGrid").innerHTML = "";
     updateProgress();
     return;
@@ -554,15 +559,25 @@ function refreshDisplay() {
 
   if (isSingleMode) {
     nav.style.display = "flex";
+    if (sidePrev) sidePrev.style.display = "flex";
+    if (sideNext) sideNext.style.display = "flex";
+
     document.getElementById("quizContainer").innerHTML = buildQuestionHtml(
       list[currentIndex],
       currentIndex,
     );
+
+    // 同步控制传统按钮与三角形侧边按钮的禁用状态
     document.getElementById("prevBtn").disabled = currentIndex === 0;
     document.getElementById("nextBtn").disabled =
       currentIndex === list.length - 1;
+    if (sidePrev) sidePrev.disabled = currentIndex === 0;
+    if (sideNext) sideNext.disabled = currentIndex === list.length - 1;
   } else {
     nav.style.display = "none";
+    if (sidePrev) sidePrev.style.display = "none";
+    if (sideNext) sideNext.style.display = "none";
+
     document.getElementById("quizContainer").innerHTML = list
       .map((q, i) => buildQuestionHtml(q, i))
       .join("");
@@ -623,13 +638,14 @@ function restoreAnswering痕迹(list) {
 
   list.forEach((qObj) => {
     let track = targetTracks[qObj.id];
-    if (!track) return; 
+    if (!track) return;
 
     if (qObj.isBlankType) {
       let panel = document.getElementById(`blank-panel-${qObj.id}`);
       let inputEl = document.getElementById(`input-${qObj.id}`);
       if (panel && inputEl) {
-        inputEl.value = track.userChoice[0] === "EMPTY" ? "" : track.userChoice[0];
+        inputEl.value =
+          track.userChoice[0] === "EMPTY" ? "" : track.userChoice[0];
         inputEl.disabled = true;
         let vBtn = panel.querySelector(".verify-blank-btn");
         if (vBtn) vBtn.style.display = "none";
@@ -645,12 +661,12 @@ function restoreAnswering痕迹(list) {
           resBox.innerText = `回答错误。你的答案: "${inputEl.value || "未填写"}" | 正确参考答案: "${qObj.ans}"`;
         }
       }
-      return; 
+      return;
     }
 
     let qBox = document.getElementById(`box-${qObj.id}`);
     if (!qBox) return;
-    
+
     let ul = qBox.querySelector(".options");
     if (!ul) return;
     ul.classList.add("answered");
@@ -1154,5 +1170,32 @@ document.getElementById("nextBtn").addEventListener("click", () => {
   if (currentIndex < list.length - 1) {
     currentIndex++;
     refreshDisplay();
+  }
+});
+
+// 绑定左右两侧三角形按钮的监听事件
+document.getElementById("sidePrevBtn").addEventListener("click", () => {
+  let list = isWrongMode
+    ? wrongQuestions
+    : isFavMode
+      ? favQuestions
+      : currentQuestions;
+  if (currentIndex > 0) {
+    currentIndex--;
+    refreshDisplay();
+    if (isSingleMode) window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+});
+
+document.getElementById("sideNextBtn").addEventListener("click", () => {
+  let list = isWrongMode
+    ? wrongQuestions
+    : isFavMode
+      ? favQuestions
+      : currentQuestions;
+  if (currentIndex < list.length - 1) {
+    currentIndex++;
+    refreshDisplay();
+    if (isSingleMode) window.scrollTo({ top: 0, behavior: "smooth" });
   }
 });
