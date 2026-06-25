@@ -1008,7 +1008,7 @@ function checkBlankAnswer(qId) {
       setTimeout(() => {
         currentIndex++;
         refreshDisplay();
-      }, 100);
+      }, 240);
     }
   } else {
     resultBox.style.backgroundColor = "var(--wrong-bg)";
@@ -1071,7 +1071,7 @@ function check(el, choice) {
         setTimeout(() => {
           currentIndex++;
           refreshDisplay();
-        }, 100);
+        }, 240);
       }
     } else {
       el.classList.add("wrong");
@@ -1143,12 +1143,12 @@ function submitMultiple(btnObj) {
   if (!isCorrect) {
     addToWrongList(qId);
   } else {
-    // 开启自动跳转且未到达最后一题时，100ms 快速跳转
+    // 开启自动跳转且未到达最后一题时，240ms 快速跳转
     if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
       setTimeout(() => {
         currentIndex++;
         refreshDisplay();
-      }, 100);
+      }, 240);
     }
   }
   buildAnswerCardMatrix(list);
