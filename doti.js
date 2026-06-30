@@ -16,7 +16,7 @@ let isAutoNext = false;
 let userHistoryTracks = {};
 let wrongHistoryTracks = {};
 let favHistoryTracks = {};
-const LETTER_ARR = ["A", "B", "C", "D"];
+const LETTER_ARR = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
 // --- 页面加载时自动读取上次的题库 ---
 window.addEventListener("DOMContentLoaded", () => {
@@ -59,42 +59,34 @@ function processQuizData(text, fileName) {
     let isMultiple = false;
     let isBlankType = false;
 
+    // =============== 【修复1：全新智能题型判定】 ===============
     if (optionsParts.length === 0) {
       isBlankType = true;
-      typeBadge =
-        '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
-    } else if (
-      ans === "A" ||
-      ans === "B" ||
-      ans === "C" ||
-      ans === "D" ||
-      ans === "正确" ||
-      ans === "错误"
-    ) {
-      if (
-        optionsParts[1] === "错误" ||
-        optionsParts[1] === "错" ||
-        optionsParts.length === 2
-      ) {
-        typeBadge =
-          '<span style="background:#3182ce;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">判断题</span>';
-      } else if (optionsParts.length > 2) {
-        typeBadge =
-          '<span style="background:#4cbd50;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">单选题</span>';
-      } else {
-        isBlankType = true;
-        typeBadge =
-          '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
-      }
-    } else if (ans.length > 1 && /^[A-D]+$/.test(ans)) {
-      isMultiple = true;
-      typeBadge =
-        '<span style="background:#e056fd;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">多选题</span>';
+      typeBadge = '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
     } else {
-      isBlankType = true;
-      typeBadge =
-        '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
+      // 通过正则判断答案是否纯由字母组成 (A-Z)
+      const isPureLetters = /^[A-Z]+$/.test(ans);
+      
+      if (isPureLetters) {
+        if (ans.length > 1) {
+          isMultiple = true;
+          typeBadge = '<span style="background:#e056fd;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">多选题</span>';
+        } else {
+          typeBadge = '<span style="background:#4cbd50;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">单选题</span>';
+        }
+      } else if (ans === "正确" || ans === "错误") {
+        typeBadge = '<span style="background:#3182ce;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">判断题</span>';
+      } else {
+        // 如果有选项但答案既不是纯字母也不是正确错误，判定为填空或按单选兜底
+        if (optionsParts.length > 1) {
+          typeBadge = '<span style="background:#4cbd50;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">单选题</span>';
+        } else {
+          isBlankType = true;
+          typeBadge = '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
+        }
+      }
     }
+    // =========================================================
 
     let mappedOptions = [];
     if (!isBlankType) {
@@ -102,24 +94,20 @@ function processQuizData(text, fileName) {
         .map((optText, index) => {
           if (!optText) return null;
           let showText = optText;
-          if (
-            !optText.startsWith("A") &&
-            !optText.startsWith("B") &&
-            !optText.startsWith("C") &&
-            !optText.startsWith("D") &&
-            index < 4
-          ) {
-            showText = `${LETTER_ARR[index]}. ${optText}`;
+
+          const currentChar = LETTER_ARR[index] || String.fromCharCode(65 + index);
+          const hasPrefix = optText.startsWith(currentChar);
+
+          if (!hasPrefix) {
+            showText = `${currentChar}. ${optText}`;
           }
-          return { text: showText, originalChar: LETTER_ARR[index] || "A" };
+          return { text: showText, originalChar: currentChar };
         })
         .filter((item) => item !== null);
+        
       for (let i = mappedOptions.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [mappedOptions[i], mappedOptions[j]] = [
-          mappedOptions[j],
-          mappedOptions[i],
-        ];
+        [mappedOptions[i], mappedOptions[j]] = [mappedOptions[j], mappedOptions[i]];
       }
     }
 
@@ -438,42 +426,32 @@ document.getElementById("fileInput").addEventListener("change", function (e) {
       let isMultiple = false;
       let isBlankType = false;
 
+      // =============== 【修复2：与上面相同的全新智能题型判定】 ===============
       if (optionsParts.length === 0) {
         isBlankType = true;
-        typeBadge =
-          '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
-      } else if (
-        ans === "A" ||
-        ans === "B" ||
-        ans === "C" ||
-        ans === "D" ||
-        ans === "正确" ||
-        ans === "错误"
-      ) {
-        if (
-          optionsParts[1] === "错误" ||
-          optionsParts[1] === "错" ||
-          optionsParts.length === 2
-        ) {
-          typeBadge =
-            '<span style="background:#3182ce;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">判断题</span>';
-        } else if (optionsParts.length > 2) {
-          typeBadge =
-            '<span style="background:#4cbd50;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">单选题</span>';
-        } else {
-          isBlankType = true;
-          typeBadge =
-            '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
-        }
-      } else if (ans.length > 1 && /^[A-D]+$/.test(ans)) {
-        isMultiple = true;
-        typeBadge =
-          '<span style="background:#e056fd;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">多选题</span>';
+        typeBadge = '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
       } else {
-        isBlankType = true;
-        typeBadge =
-          '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
+        const isPureLetters = /^[A-Z]+$/.test(ans);
+        
+        if (isPureLetters) {
+          if (ans.length > 1) {
+            isMultiple = true;
+            typeBadge = '<span style="background:#e056fd;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">多选题</span>';
+          } else {
+            typeBadge = '<span style="background:#4cbd50;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">单选题</span>';
+          }
+        } else if (ans === "正确" || ans === "错误") {
+          typeBadge = '<span style="background:#3182ce;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">判断题</span>';
+        } else {
+          if (optionsParts.length > 1) {
+            typeBadge = '<span style="background:#4cbd50;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">单选题</span>';
+          } else {
+            isBlankType = true;
+            typeBadge = '<span style="background:#f0932b;color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:6px;">填空题</span>';
+          }
+        }
       }
+      // ====================================================================
 
       let mappedOptions = [];
       if (!isBlankType) {
@@ -481,16 +459,14 @@ document.getElementById("fileInput").addEventListener("change", function (e) {
           .map((optText, index) => {
             if (!optText) return null;
             let showText = optText;
-            if (
-              !optText.startsWith("A") &&
-              !optText.startsWith("B") &&
-              !optText.startsWith("C") &&
-              !optText.startsWith("D") &&
-              index < 4
-            ) {
-              showText = `${LETTER_ARR[index]}. ${optText}`;
+
+            const currentChar = LETTER_ARR[index] || String.fromCharCode(65 + index);
+            const hasPrefix = optText.startsWith(currentChar);
+
+            if (!hasPrefix) {
+              showText = `${currentChar}. ${optText}`;
             }
-            return { text: showText, originalChar: LETTER_ARR[index] || "A" };
+            return { text: showText, originalChar: currentChar };
           })
           .filter((item) => item !== null);
 
@@ -567,7 +543,6 @@ function refreshDisplay() {
       currentIndex,
     );
 
-    // 同步控制传统按钮与三角形侧边按钮的禁用状态
     document.getElementById("prevBtn").disabled = currentIndex === 0;
     document.getElementById("nextBtn").disabled =
       currentIndex === list.length - 1;
@@ -628,7 +603,6 @@ function buildQuestionHtml(qObj, displayIdx) {
   `;
 }
 
-// 恢复作答痕迹修复
 function restoreAnswering痕迹(list) {
   let targetTracks = isWrongMode
     ? wrongHistoryTracks
@@ -954,8 +928,6 @@ document
     reader.readAsText(file);
   });
 
-// ==================== 核心交互函数释放至全局作用域（跳转间隔缩短为100ms） ====================
-
 // 1. 填空题核对与跳转
 function checkBlankAnswer(qId) {
   const panel = document.getElementById(`blank-panel-${qId}`);
@@ -1003,7 +975,6 @@ function checkBlankAnswer(qId) {
     resultBox.style.backgroundColor = "var(--correct-bg)";
     resultBox.style.color = "var(--correct-text)";
     resultBox.innerText = `恭喜答对！参考答案：${qObj.ans}`;
-    // 开启自动跳转且未到达最后一题时，100ms 快速跳转
     if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
       setTimeout(() => {
         currentIndex++;
@@ -1038,7 +1009,9 @@ function check(el, choice) {
   } else {
     parent.classList.add("answered");
 
-    let pureEditText = el.innerText.replace(/^[A-D]\.\s*/, "").trim();
+    // =============== 【修复3：支持动态字母过滤前缀】 ===============
+    let pureEditText = el.innerText.replace(/^[A-Z]\.\s*/, "").trim();
+    // ============================================================
     let isCorrect =
       choice === ans || el.innerText.trim() === ans || pureEditText === ans;
 
@@ -1066,7 +1039,6 @@ function check(el, choice) {
 
     if (isCorrect) {
       el.classList.add("correct");
-      // 开启自动跳转且未到达最后一题时，100ms 快速跳转
       if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
         setTimeout(() => {
           currentIndex++;
@@ -1078,7 +1050,7 @@ function check(el, choice) {
       addToWrongList(qId);
       Array.from(parent.children).forEach((li) => {
         let c = li.getAttribute("data-char");
-        let liPureText = li.innerText.replace(/^[A-D]\.\s*/, "").trim();
+        let liPureText = li.innerText.replace(/^[A-Z]\.\s*/, "").trim();
         if (c === ans || li.innerText.trim() === ans || liPureText === ans)
           li.classList.add("correct");
       });
@@ -1143,7 +1115,6 @@ function submitMultiple(btnObj) {
   if (!isCorrect) {
     addToWrongList(qId);
   } else {
-    // 开启自动跳转且未到达最后一题时，240ms 快速跳转
     if (isAutoNext && isSingleMode && currentIndex < list.length - 1) {
       setTimeout(() => {
         currentIndex++;
@@ -1154,7 +1125,7 @@ function submitMultiple(btnObj) {
   buildAnswerCardMatrix(list);
 }
 
-// 4. 原有上下题按钮监听事件
+// 4. 上下题按钮监听事件
 document.getElementById("prevBtn").addEventListener("click", () => {
   if (currentIndex > 0) {
     currentIndex--;
@@ -1173,13 +1144,8 @@ document.getElementById("nextBtn").addEventListener("click", () => {
   }
 });
 
-// 绑定左右两侧三角形按钮的监听事件
+// 侧边三角形按钮监听事件
 document.getElementById("sidePrevBtn").addEventListener("click", () => {
-  let list = isWrongMode
-    ? wrongQuestions
-    : isFavMode
-      ? favQuestions
-      : currentQuestions;
   if (currentIndex > 0) {
     currentIndex--;
     refreshDisplay();
